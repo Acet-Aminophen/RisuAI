@@ -37,7 +37,7 @@ jobs:
       - name: Build Docker images
         shell: bash
         run: |
-          docker build -t ghcr.io/$(echo $GITHUB_REPOSITORY_OWNER)/risuai:$(git rev-parse --short "$GITHUB_SHA") -t ghcr.io/$(echo $GITHUB_REPOSITORY_OWNER)/risuai:latest .
+          docker build -t ghcr.io/$(echo $GITHUB_REPOSITORY_OWNER)/risuai:$(git rev-parse --short "$GITHUB_SHA") -t ghcr.io/$(echo $GITHUB_REPOSITORY_OWNER)/risuai:latest .;docker images --digests
 
       - name: Push Docker images
         shell: bash
