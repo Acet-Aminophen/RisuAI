@@ -37,9 +37,9 @@ jobs:
       - name: Build Docker images
         shell: bash
         run: |
-          docker build -t ghcr.io/acet_aminophen/risuai:$(git rev-parse --short "$GITHUB_SHA") -t ghcr.io/acet_aminophen/risuai:latest .;docker images --digests
+          docker build -t ghcr.io/acet-aminophen/risuai:$(git rev-parse --short "$GITHUB_SHA") -t ghcr.io/acet-aminophen/risuai:latest .;docker images --digests
 
       - name: Push Docker images
         shell: bash
         run: |
-          docker push --all-tags ghcr.io/acet_aminophen/risuai
+          docker push --all-tags ghcr.io/acet-aminophen/risuai
