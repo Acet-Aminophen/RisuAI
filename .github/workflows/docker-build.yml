@@ -36,16 +36,36 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
     
-      - name: Build Docker images
+      - name: Set environment variables
         shell: bash
         run: |
           GITHUB_REPOSITORY_OWNER_SMALLCASE=$(echo $GITHUB_REPOSITORY_OWNER | tr '[:upper:]' '[:lower:]')
           echo "GITHUB_REPOSITORY_OWNER_SMALLCASE=$GITHUB_REPOSITORY_OWNER_SMALLCASE" >> $GITHUB_ENV
           
+          if [[ "${{ github.ref }}" =~ ^refs/heads/ ]]; then
+            SHORT_SHA=$(git rev-parse --short "${{ github.sha }}")
+            echo "SHORT_SHA=$SHORT_SHA" >> $GITHUB_ENV
+          fi
+
+      - name: Update version files for branch builds
+        if: startsWith(github.ref, 'refs/heads/')
+        shell: bash
+        run: |
+          # Update appVer in database.svelte.ts
+          sed -i "s/export let appVer = \"[^\"]*\"/export let appVer = \"$SHORT_SHA\"/" src/ts/storage/database.svelte.ts
+          
+          # Update version.json
+          echo "{\"version\":\"$SHORT_SHA\"}" > version.json
+          
+          # Update tauri.conf.json
+          sed -i 's/"version": "[^"]*"/"version": "'$SHORT_SHA'"/' src-tauri/tauri.conf.json
+
+      - name: Build Docker images
+        shell: bash
+        run: |
           if [[ "${{ github.ref }}" =~ ^refs/tags/ ]]; then
             docker build --label "org.opencontainers.image.ref.name=risuai" --label "org.opencontainers.image.version=${{ github.ref_name }}" -t ghcr.io/$GITHUB_REPOSITORY_OWNER_SMALLCASE/risuai:${{ github.ref_name }} -t ghcr.io/$GITHUB_REPOSITORY_OWNER_SMALLCASE/risuai:latest .
           else
-            SHORT_SHA=$(git rev-parse --short "$GITHUB_SHA")
             docker build --label "org.opencontainers.image.ref.name=risuai" --label "org.opencontainers.image.version=${{ github.sha }}" -t ghcr.io/$GITHUB_REPOSITORY_OWNER_SMALLCASE/risuai:$SHORT_SHA .
           fi
 
